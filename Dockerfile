@@ -16,7 +16,7 @@ ARG API_URL
 ENV API_URL=${API_URL}
 
 # Build the app without SSR (client-side only)
-RUN ng build --configuration production
+RUN npx ng build --configuration production
 
 # Production stage
 FROM nginx:alpine
