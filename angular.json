@@ -63,7 +63,7 @@
               "sourceMap": true
             },
             "client-only": {
-              "outputMode": "client",
+              "outputMode": "static",
               "ssr": false,
               "server": false,
               "budgets": [
