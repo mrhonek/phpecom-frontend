@@ -12,8 +12,8 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'products/:id',
-    // Use 'renderMode: null' to disable prerendering for routes with parameters
-    renderMode: null
+    // Use Client mode for routes with parameters
+    renderMode: RenderMode.Client
   },
   {
     path: 'login',
@@ -37,11 +37,11 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'orders/:id',
-    // Use 'renderMode: null' to disable prerendering for routes with parameters
-    renderMode: null
+    // Use Client mode for routes with parameters
+    renderMode: RenderMode.Client
   },
   {
     path: '**',
-    renderMode: null
+    renderMode: RenderMode.Client
   }
 ];
