@@ -15,14 +15,14 @@ COPY . ./
 ARG API_URL
 ENV API_URL=${API_URL}
 
-# Build the app
-RUN npm run build
+# Build the app without SSR (client-side only)
+RUN ng build --configuration production
 
 # Production stage
 FROM nginx:alpine
 
 # Copy built assets from build stage
-COPY --from=build /app/dist/frontend /usr/share/nginx/html
+COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
 
 # Add nginx config for SPA routing
 RUN echo 'server { \
