@@ -37,9 +37,13 @@ RUN echo 'server { \
 # Expose port
 EXPOSE $PORT
 
-# Configure for Railway's dynamic port
-RUN echo 'sed -i "s/listen 80/listen $PORT/g" /etc/nginx/conf.d/default.conf && nginx -g "daemon off;"' > /start.sh
+# Configure for Railway's dynamic port - create a startup script
+RUN echo '#!/bin/sh \n\
+sed -i "s/listen 80/listen $PORT/g" /etc/nginx/conf.d/default.conf \n\
+nginx -g "daemon off;"' > /start.sh
+
 RUN chmod +x /start.sh
 
-# Start nginx
+# Explicitly set the entrypoint and cmd
+ENTRYPOINT ["/bin/sh"]
 CMD ["/start.sh"] 
