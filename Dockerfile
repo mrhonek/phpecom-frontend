@@ -24,26 +24,32 @@ FROM nginx:alpine
 # Copy built assets from build stage
 COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
 
-# Add nginx config for SPA routing
-RUN echo 'server { \
-  listen 80; \
-  location / { \
-    root /usr/share/nginx/html; \
-    index index.html; \
-    try_files $uri $uri/ /index.html; \
-  } \
+# Create a health check file
+RUN echo "HEALTH CHECK OK" > /usr/share/nginx/html/health.txt
+
+# Create a simpler default.conf for Nginx
+RUN echo 'server {\n\
+    listen PORT_PLACEHOLDER default_server;\n\
+    server_name _;\n\
+    root /usr/share/nginx/html;\n\
+    index index.html index.htm;\n\
+    location / {\n\
+        try_files $uri $uri/ /index.html =404;\n\
+    }\n\
 }' > /etc/nginx/conf.d/default.conf
 
-# Expose port
-EXPOSE $PORT
+# Expose port (Railway will override this)
+EXPOSE 80
 
-# Configure for Railway's dynamic port - create a startup script
-RUN echo '#!/bin/sh \n\
-sed -i "s/listen 80/listen $PORT/g" /etc/nginx/conf.d/default.conf \n\
+# Create a simpler startup script
+RUN echo '#!/bin/sh\n\
+sed -i -e "s/PORT_PLACEHOLDER/$PORT/g" /etc/nginx/conf.d/default.conf\n\
+echo "Nginx config:"\n\
+cat /etc/nginx/conf.d/default.conf\n\
+echo "Starting nginx..."\n\
 nginx -g "daemon off;"' > /start.sh
 
 RUN chmod +x /start.sh
 
-# Explicitly set the entrypoint and cmd
 ENTRYPOINT ["/bin/sh"]
 CMD ["/start.sh"] 
