@@ -1,0 +1,28 @@
+<nav class="navbar">
+  <div class="navbar-container">
+    <div class="navbar-logo">
+      <a routerLink="/" class="logo">PHPecom</a>
+    </div>
+    
+    <div class="navbar-links">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
+      <a routerLink="/products" routerLinkActive="active">Products</a>
+      
+      <!-- Links for authenticated users -->
+      <ng-container *ngIf="isAuthenticated()">
+        <a routerLink="/cart" routerLinkActive="active" class="cart-link">
+          Cart
+          <span *ngIf="cartItemCount > 0" class="cart-badge">{{ cartItemCount }}</span>
+        </a>
+        <a routerLink="/orders" routerLinkActive="active">Orders</a>
+        <a href="javascript:void(0)" (click)="logout()" class="logout-link">Logout</a>
+      </ng-container>
+      
+      <!-- Links for non-authenticated users -->
+      <ng-container *ngIf="!isAuthenticated()">
+        <a routerLink="/login" routerLinkActive="active">Login</a>
+        <a routerLink="/register" routerLinkActive="active">Register</a>
+      </ng-container>
+    </div>
+  </div>
+</nav> 
