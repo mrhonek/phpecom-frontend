@@ -1,6 +1,6 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
-// Skip routes with parameters and only prerender fixed paths
+// Define all routes from the client app
 export const serverRoutes: ServerRoute[] = [
   {
     path: '',
@@ -9,6 +9,11 @@ export const serverRoutes: ServerRoute[] = [
   {
     path: 'products',
     renderMode: RenderMode.Prerender
+  },
+  {
+    path: 'products/:id',
+    // Use 'renderMode: null' to disable prerendering for routes with parameters
+    renderMode: null
   },
   {
     path: 'login',
@@ -29,5 +34,14 @@ export const serverRoutes: ServerRoute[] = [
   {
     path: 'orders',
     renderMode: RenderMode.Prerender
+  },
+  {
+    path: 'orders/:id',
+    // Use 'renderMode: null' to disable prerendering for routes with parameters
+    renderMode: null
+  },
+  {
+    path: '**',
+    renderMode: null
   }
 ];
