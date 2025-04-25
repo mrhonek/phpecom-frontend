@@ -15,8 +15,8 @@ COPY . ./
 ARG API_URL
 ENV API_URL=${API_URL}
 
-# Build the app using standard build (no SSR)
-RUN npm run build -- --configuration=production --no-prerender
+# Build the app using client-only configuration (no SSR)
+RUN npm run build -- --configuration=client-only
 
 # Production stage
 FROM nginx:alpine
