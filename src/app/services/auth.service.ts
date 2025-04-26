@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { AuthResponse, User } from '../models/user.model';
 import { environment } from '../../environments/environment';
@@ -19,27 +19,49 @@ export class AuthService {
   }
 
   register(name: string, email: string, password: string, password_confirmation: string): Observable<AuthResponse> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    });
+    
+    console.log('Sending registration request to:', `${this.apiUrl}/register`);
+    console.log('With payload:', { name, email, password: '****', password_confirmation: '****' });
+    
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, {
       name,
       email,
       password,
       password_confirmation
-    }).pipe(
-      tap(response => this.setAuth(response))
+    }, { headers }).pipe(
+      tap(response => {
+        console.log('Registration response:', response);
+        this.setAuth(response);
+      })
     );
   }
 
   login(email: string, password: string): Observable<AuthResponse> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    });
+    
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, {
       email,
       password
-    }).pipe(
+    }, { headers }).pipe(
       tap(response => this.setAuth(response))
     );
   }
 
   logout(): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/logout`, {}).pipe(
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${this.getToken()}`
+    });
+    
+    return this.http.post<any>(`${this.apiUrl}/logout`, {}, { headers }).pipe(
       tap(() => this.clearAuth())
     );
   }
