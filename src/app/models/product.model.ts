@@ -10,5 +10,6 @@ export interface Product {
 }
 
 export interface ProductResponse {
-    data: Product[];
+    status: string;
+    products: Product[];
 } 
