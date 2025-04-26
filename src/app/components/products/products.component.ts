@@ -29,6 +29,8 @@ export class ProductsComponent implements OnInit {
     this.productService.getProducts().subscribe({
       next: (response) => {
         this.products = response.products;
+        // Store products in localStorage for cart service to use
+        localStorage.setItem('local_products', JSON.stringify(this.products));
         this.loading = false;
       },
       error: (error) => {
