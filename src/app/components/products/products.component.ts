@@ -40,6 +40,10 @@ export class ProductsComponent implements OnInit {
     });
   }
 
+  formatPrice(price: string | number): string {
+    return Number(price).toFixed(2);
+  }
+
   addToCart(productId: number): void {
     if (!this.authService.isAuthenticated()) {
       // Redirect to login if not authenticated
