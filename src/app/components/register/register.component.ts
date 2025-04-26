@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-register',
@@ -51,11 +52,21 @@ export class RegisterComponent implements OnInit {
 
   onSubmit(): void {
     this.submitted = true;
+    this.error = '';
 
     // Stop here if form is invalid
     if (this.registerForm.invalid) {
       return;
     }
+
+    console.log('Submitting registration form with data:', {
+      name: this.f['name'].value,
+      email: this.f['email'].value,
+      password: '******', // Don't log actual password
+      password_confirmation: '******'
+    });
+    
+    console.log('API URL:', this.authService['apiUrl'] + '/register');
 
     this.loading = true;
     this.authService.register(
@@ -64,11 +75,35 @@ export class RegisterComponent implements OnInit {
       this.f['password'].value,
       this.f['password_confirmation'].value
     ).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('Registration successful:', response);
         this.router.navigate(['/']);
       },
-      error: error => {
-        this.error = error.error?.message || 'Registration failed';
+      error: (error: HttpErrorResponse) => {
+        console.error('Registration error:', error);
+        
+        if (error.error && typeof error.error === 'object') {
+          if (error.error.message) {
+            this.error = error.error.message;
+          } else if (error.error.errors) {
+            // Handle Laravel validation errors
+            const validationErrors = error.error.errors;
+            const errorMessages = [];
+            
+            for (const field in validationErrors) {
+              if (validationErrors.hasOwnProperty(field)) {
+                errorMessages.push(validationErrors[field][0]);
+              }
+            }
+            
+            this.error = errorMessages.join(', ');
+          } else {
+            this.error = 'Registration failed: ' + error.statusText;
+          }
+        } else {
+          this.error = error.message || 'Registration failed';
+        }
+        
         this.loading = false;
       }
     });
