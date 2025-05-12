@@ -1,0 +1,96 @@
+<div class="container mt-4">
+  <h1>{{ isEdit ? 'Edit' : 'Create' }} Product</h1>
+
+  <div *ngIf="loading" class="text-center my-4">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="mb-5">
+    <div class="row">
+      <!-- Product Info Column -->
+      <div class="col-md-8">
+        <div class="mb-3">
+          <label for="name" class="form-label">Product Name</label>
+          <input type="text" id="name" formControlName="name" class="form-control"
+                 [class.is-invalid]="productForm.get('name')?.invalid && productForm.get('name')?.touched">
+          <div *ngIf="productForm.get('name')?.invalid && productForm.get('name')?.touched" class="invalid-feedback">
+            Product name is required.
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="description" class="form-label">Description</label>
+          <textarea id="description" formControlName="description" class="form-control" rows="5"
+                    [class.is-invalid]="productForm.get('description')?.invalid && productForm.get('description')?.touched"></textarea>
+          <div *ngIf="productForm.get('description')?.invalid && productForm.get('description')?.touched" class="invalid-feedback">
+            Description is required.
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="price" class="form-label">Price ($)</label>
+            <input type="number" id="price" formControlName="price" class="form-control" min="0" step="0.01"
+                   [class.is-invalid]="productForm.get('price')?.invalid && productForm.get('price')?.touched">
+            <div *ngIf="productForm.get('price')?.invalid && productForm.get('price')?.touched" class="invalid-feedback">
+              Valid price is required.
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <label for="stock" class="form-label">Stock Quantity</label>
+            <input type="number" id="stock" formControlName="stock" class="form-control" min="0"
+                   [class.is-invalid]="productForm.get('stock')?.invalid && productForm.get('stock')?.touched">
+            <div *ngIf="productForm.get('stock')?.invalid && productForm.get('stock')?.touched" class="invalid-feedback">
+              Valid stock quantity is required.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image Column -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header">Product Image</div>
+          <div class="card-body">
+            <div class="mb-3 text-center">
+              <div class="image-preview-container">
+                <img *ngIf="imagePreview" [src]="imagePreview" class="img-thumbnail image-preview" alt="Product image preview">
+                <div *ngIf="!imagePreview" class="no-image">No image selected</div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="image" class="form-label">Select Image</label>
+              <input type="file" id="image" class="form-control" accept="image/*" (change)="onImageSelected($event)">
+            </div>
+
+            <div class="mb-3">
+              <label for="alt_text" class="form-label">Alt Text</label>
+              <input type="text" id="alt_text" formControlName="alt_text" class="form-control"
+                     placeholder="Descriptive text for the image">
+            </div>
+
+            <button *ngIf="imagePreview && isEdit" type="button" class="btn btn-outline-danger w-100 mt-3" 
+                    (click)="deleteImage()">
+              Delete Image
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+      <button type="button" class="btn btn-secondary" routerLink="/admin/products">
+        Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="productForm.invalid || loading">
+        {{ isEdit ? 'Update' : 'Create' }} Product
+      </button>
+    </div>
+  </form>
+</div> 
