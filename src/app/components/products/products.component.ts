@@ -5,6 +5,7 @@ import { ProductService } from '../../services/product.service';
 import { CartService } from '../../services/cart.service';
 import { Product } from '../../models/product.model';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-products',
@@ -17,6 +18,7 @@ export class ProductsComponent implements OnInit {
   products: Product[] = [];
   loading = false;
   error = '';
+  baseImageUrl = 'https://source.unsplash.com/random/300x200/?';
 
   constructor(
     private productService: ProductService,
@@ -29,7 +31,16 @@ export class ProductsComponent implements OnInit {
     this.productService.getProducts().subscribe({
       next: (response) => {
         this.products = response.products;
-        // Store products in localStorage for cart service to use
+        
+        // Enhance products with better image URLs if they don't have one
+        this.products.forEach(product => {
+          if (!product.image_url || product.image_url.trim() === '') {
+            // Generate placeholder image URL based on product name
+            product.image_url = this.baseImageUrl + encodeURIComponent(product.name.toLowerCase());
+          }
+        });
+        
+        // Store enhanced products in localStorage for cart service to use
         localStorage.setItem('local_products', JSON.stringify(this.products));
         this.loading = false;
       },
