@@ -15,7 +15,8 @@ export class HomeComponent implements OnInit {
   featuredProducts: Product[] = [];
   loading: boolean = false;
   error: string = '';
-  baseImageUrl = 'https://source.unsplash.com/random/300x200/?';
+  // Using placeholder.com instead of Unsplash for more reliable images
+  placeholderColors = ['E9967A', 'F0E68C', 'BDB76B', '3CB371', '87CEEB', 'B0C4DE', 'FFCC99', 'FF99CC'];
 
   constructor(private productService: ProductService) {}
 
@@ -25,12 +26,13 @@ export class HomeComponent implements OnInit {
       next: (response) => {
         // Get a few random products to feature
         if (response.products.length > 0) {
-          const enhancedProducts = response.products.map(product => {
+          const enhancedProducts = response.products.map((product, index) => {
             if (!product.image_url || product.image_url.trim() === '') {
-              // Generate placeholder image URL based on product name
+              // Use placeholder.com with product name as text and random background color
+              const colorIndex = index % this.placeholderColors.length;
               return {
                 ...product,
-                image_url: this.baseImageUrl + encodeURIComponent(product.name.toLowerCase())
+                image_url: `https://via.placeholder.com/300x200/${this.placeholderColors[colorIndex]}/000000?text=${encodeURIComponent(product.name)}`
               };
             }
             return product;
