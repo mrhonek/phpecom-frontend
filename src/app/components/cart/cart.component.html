@@ -29,7 +29,7 @@
             <input type="number" [(ngModel)]="item.quantity" min="1" (change)="updateQuantity(item, item.quantity)">
             <button (click)="updateQuantity(item, item.quantity + 1)">+</button>
           </div>
-          <p class="item-subtotal">Subtotal: ${{ formatPrice((item.product?.price || 0) * item.quantity) }}</p>
+          <p class="item-subtotal">Subtotal: ${{ formatPrice(getItemSubtotal(item)) }}</p>
           <button class="btn-remove" (click)="removeFromCart(item.id)">Remove</button>
         </div>
       </div>

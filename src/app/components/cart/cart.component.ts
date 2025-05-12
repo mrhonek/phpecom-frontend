@@ -69,6 +69,17 @@ export class CartComponent implements OnInit {
       }
     });
   }
+  
+  // Calculate the subtotal for a cart item
+  getItemSubtotal(item: CartItem): number {
+    if (!item || !item.product) return 0;
+    
+    const price = typeof item.product.price === 'string' 
+      ? parseFloat(item.product.price) 
+      : item.product.price;
+      
+    return price * item.quantity;
+  }
 
   formatPrice(price: number | string): string {
     return Number(price).toFixed(2);
