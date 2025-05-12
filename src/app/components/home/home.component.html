@@ -1,1 +1,77 @@
-<p>home works!</p>
+<div class="home-container">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Welcome to E-Shop</h1>
+      <p>Your one-stop shop for quality products at unbeatable prices</p>
+      <button class="btn btn-primary" routerLink="/products">Shop Now</button>
+    </div>
+  </section>
+
+  <!-- Featured Products -->
+  <section class="featured-products">
+    <h2>Featured Products</h2>
+    
+    <div *ngIf="loading" class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Loading products...</p>
+    </div>
+    
+    <div *ngIf="error" class="error-message">
+      {{ error }}
+    </div>
+    
+    <div *ngIf="!loading && featuredProducts.length > 0" class="products-grid">
+      <div *ngFor="let product of featuredProducts" class="product-card">
+        <div class="product-image">
+          <img [src]="product.image_url || 'assets/placeholder.jpg'" [alt]="product.name">
+        </div>
+        <div class="product-details">
+          <h3>{{ product.name }}</h3>
+          <p class="product-price">${{ formatPrice(product.price) }}</p>
+          <button class="btn btn-secondary" [routerLink]="['/products', product.id]">View Details</button>
+        </div>
+      </div>
+    </div>
+    
+    <div *ngIf="!loading && !error && featuredProducts.length === 0" class="no-products">
+      <p>No featured products available at this time.</p>
+    </div>
+  </section>
+
+  <!-- Promotional Sections -->
+  <section class="promotional-grid">
+    <div class="promo-card">
+      <div class="icon">🚚</div>
+      <h3>Free Shipping</h3>
+      <p>On all orders over $50</p>
+    </div>
+    <div class="promo-card">
+      <div class="icon">💯</div>
+      <h3>Quality Guarantee</h3>
+      <p>100% satisfaction or your money back</p>
+    </div>
+    <div class="promo-card">
+      <div class="icon">🔒</div>
+      <h3>Secure Checkout</h3>
+      <p>Your data is always protected</p>
+    </div>
+    <div class="promo-card">
+      <div class="icon">🎁</div>
+      <h3>Special Offers</h3>
+      <p>New deals every week</p>
+    </div>
+  </section>
+
+  <!-- Call to Action -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>Join Our Newsletter</h2>
+      <p>Subscribe to receive updates, access to exclusive deals, and more.</p>
+      <form class="newsletter-form">
+        <input type="email" placeholder="Your email address" required>
+        <button type="submit" class="btn btn-primary">Subscribe</button>
+      </form>
+    </div>
+  </section>
+</div>
