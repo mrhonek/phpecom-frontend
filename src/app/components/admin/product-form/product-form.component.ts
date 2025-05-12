@@ -109,6 +109,12 @@ export class ProductFormComponent implements OnInit {
     const headers = this.getHeaders();
     const productData = this.productForm.value;
     
+    // Add debug information
+    console.log('Auth Token:', this.authService.getToken());
+    console.log('API URL:', `${environment.apiUrl}/admin/products`);
+    console.log('Headers:', headers);
+    console.log('Product Data:', productData);
+    
     // First save the product data
     if (this.isEdit && this.productId) {
       // Update existing product
