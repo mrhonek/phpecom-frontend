@@ -15,6 +15,10 @@
           <span *ngIf="cartItemCount > 0" class="cart-badge">{{ cartItemCount }}</span>
         </a>
         <a routerLink="/orders" routerLinkActive="active">Orders</a>
+        
+        <!-- Admin links - would typically check if user is admin -->
+        <a routerLink="/admin/products" routerLinkActive="active">Admin Products</a>
+        
         <a href="javascript:void(0)" (click)="logout()" class="logout-link">Logout</a>
       </ng-container>
       

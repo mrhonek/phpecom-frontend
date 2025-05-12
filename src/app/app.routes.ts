@@ -8,6 +8,8 @@ import { OrdersComponent } from './components/orders/orders.component';
 import { OrderDetailComponent } from './components/order-detail/order-detail.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
+import { ProductListComponent } from './components/admin/product-list/product-list.component';
+import { ProductFormComponent } from './components/admin/product-form/product-form.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -20,5 +22,20 @@ export const routes: Routes = [
   { path: 'orders/:id', component: OrderDetailComponent, canActivate: [authGuard] },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { 
+    path: 'admin/products', 
+    component: ProductListComponent, 
+    canActivate: [authGuard] 
+  },
+  { 
+    path: 'admin/products/create', 
+    component: ProductFormComponent, 
+    canActivate: [authGuard] 
+  },
+  { 
+    path: 'admin/products/edit/:id', 
+    component: ProductFormComponent, 
+    canActivate: [authGuard] 
+  },
   { path: '**', redirectTo: '' }
 ]; 
