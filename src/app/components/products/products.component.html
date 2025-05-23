@@ -13,7 +13,7 @@
   <div class="products-grid">
     <div *ngFor="let product of products" class="product-card">
       <div class="product-image">
-        <img [src]="product.image_url || 'assets/placeholder.jpg'" [alt]="product.name">
+        <img [src]="product.full_image_url || product.image_url || 'assets/placeholder.jpg'" [alt]="product.name">
       </div>
       <div class="product-details">
         <h3>
