@@ -18,8 +18,8 @@ export class ProductDetailComponent implements OnInit {
   loading = false;
   error = '';
   quantity = 1;
-  // Using placeholder.com instead of Unsplash for more reliable images
-  placeholderColor = '3CB371'; // Default color
+  // Using placehold.co for more reliable images
+  placeholderColors = ['E9967A', 'F0E68C', 'BDB76B', '3CB371', '87CEEB', 'B0C4DE', 'FFCC99', 'FF99CC'];
 
   constructor(
     private route: ActivatedRoute,
@@ -48,20 +48,35 @@ export class ProductDetailComponent implements OnInit {
         
         // Add placeholder image if missing
         if (this.product && (!this.product.image_url || this.product.image_url.trim() === '')) {
-          this.product.image_url = `https://via.placeholder.com/600x400/${this.placeholderColor}/000000?text=${encodeURIComponent(this.product.name)}`;
+          // Select a random color from the placeholder colors
+          const randomColor = this.placeholderColors[Math.floor(Math.random() * this.placeholderColors.length)];
+          this.product.image_url = `https://placehold.co/600x400/${randomColor}/000000?text=${encodeURIComponent(this.product.name || 'Product')}`;
         }
         
         this.loading = false;
       },
       error: (error) => {
-        this.error = error.message || 'Error loading product';
+        console.error('Failed to load product details:', error);
+        this.error = 'Error loading product details. Please try again later.';
         this.loading = false;
+        
+        // Create a dummy product on error
+        this.product = {
+          id: +this.route.snapshot.params['id'] || 0,
+          name: 'Sample Product',
+          description: 'This is a sample product description.',
+          price: '29.99',
+          stock: 10,
+          image_url: `https://placehold.co/600x400/3CB371/000000?text=Sample+Product`
+        };
       }
     });
   }
 
   incrementQuantity(): void {
-    this.quantity++;
+    if (this.product && this.quantity < this.product.stock) {
+      this.quantity++;
+    }
   }
 
   decrementQuantity(): void {
