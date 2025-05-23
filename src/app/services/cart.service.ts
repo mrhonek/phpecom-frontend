@@ -22,6 +22,7 @@ export class CartService {
     private authService: AuthService
   ) { 
     this.loadLocalCart();
+    this.getCart().subscribe(); // Load cart on service initialization
   }
 
   // Load cart from localStorage
@@ -55,10 +56,33 @@ export class CartService {
     this.cartTotalSubject.next(total);
   }
 
+  // Get auth headers if user is logged in
+  private getHeaders(): HttpHeaders | null {
+    const token = this.authService.getToken();
+    if (!token) {
+      return null; // No token, use local cart
+    }
+    
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+  }
+
   getCart(): Observable<CartResponse> {
-    // Try backend first
+    // Check if user is logged in
+    const headers = this.getHeaders();
+    if (!headers) {
+      // Use local cart if not logged in
+      const cartItems = this.cartItemsSubject.value;
+      const total = this.cartTotalSubject.value;
+      return of({ data: cartItems, total });
+    }
+    
+    // User is logged in, try backend
     return new Observable<CartResponse>(observer => {
-      this.http.get<CartResponse>(this.apiUrl).subscribe({
+      this.http.get<CartResponse>(this.apiUrl, { headers }).subscribe({
         next: (response) => {
           this.cartItemsSubject.next(response.data);
           this.cartTotalSubject.next(response.total);
@@ -78,13 +102,14 @@ export class CartService {
   }
 
   addToCart(productId: number, quantity: number): Observable<{message: string, data: CartItem}> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${this.authService.getToken()}`
-    });
-
-    // Try backend first
+    // Check if user is logged in
+    const headers = this.getHeaders();
+    if (!headers) {
+      // Use local cart if not logged in
+      return this.addToLocalCart(productId, quantity);
+    }
+    
+    // User is logged in, try backend
     return new Observable<{message: string, data: CartItem}>(observer => {
       this.http.post<{message: string, data: CartItem}>(`${this.apiUrl}/add`, {
         product_id: productId,
@@ -97,64 +122,71 @@ export class CartService {
         },
         error: (error) => {
           console.error('Failed to add to cart via API, using local cart:', error);
-          
-          // Use local cart
-          const cartItems = [...this.cartItemsSubject.value];
-          const existingItemIndex = cartItems.findIndex(item => item.product_id === productId);
-          
-          // Get product info from the products displayed on the page
-          const products = JSON.parse(localStorage.getItem('local_products') || '[]');
-          const product = products.find((p: any) => p.id === productId);
-          
-          if (!product) {
-            observer.error({ error: { message: 'Product not found' } });
-            return;
-          }
-          
-          if (existingItemIndex >= 0) {
-            // Update existing item
-            cartItems[existingItemIndex].quantity += quantity;
-            const cartItem = cartItems[existingItemIndex];
-            this.saveLocalCart(cartItems);
-            
-            observer.next({
-              message: 'Cart updated successfully (local)',
-              data: cartItem
-            });
-          } else {
-            // Add new item
-            const newItem: CartItem = {
-              id: Date.now(), // Use timestamp as ID
-              user_id: 1, // Dummy user ID
-              product_id: productId,
-              quantity: quantity,
-              product: product,
-              created_at: new Date().toISOString()
-            };
-            
-            cartItems.push(newItem);
-            this.saveLocalCart(cartItems);
-            
-            observer.next({
-              message: 'Item added to cart successfully (local)',
-              data: newItem
-            });
-          }
-          
-          observer.complete();
+          this.addToLocalCart(productId, quantity).subscribe(response => {
+            observer.next(response);
+            observer.complete();
+          });
         }
       });
     });
   }
 
-  removeFromCart(id: number): Observable<{message: string}> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${this.authService.getToken()}`
+  private addToLocalCart(productId: number, quantity: number): Observable<{message: string, data: CartItem}> {
+    return new Observable<{message: string, data: CartItem}>(observer => {
+      const cartItems = [...this.cartItemsSubject.value];
+      const existingItemIndex = cartItems.findIndex(item => item.product_id === productId);
+      
+      // Get product info from the products displayed on the page
+      const products = JSON.parse(localStorage.getItem('local_products') || '[]');
+      const product = products.find((p: any) => p.id === productId);
+      
+      if (!product) {
+        observer.error({ error: { message: 'Product not found' } });
+        return;
+      }
+      
+      if (existingItemIndex >= 0) {
+        // Update existing item
+        cartItems[existingItemIndex].quantity += quantity;
+        const cartItem = cartItems[existingItemIndex];
+        this.saveLocalCart(cartItems);
+        
+        observer.next({
+          message: 'Cart updated successfully (local)',
+          data: cartItem
+        });
+      } else {
+        // Add new item
+        const newItem: CartItem = {
+          id: Date.now(), // Use timestamp as ID
+          user_id: 1, // Dummy user ID
+          product_id: productId,
+          quantity: quantity,
+          product: product,
+          created_at: new Date().toISOString()
+        };
+        
+        cartItems.push(newItem);
+        this.saveLocalCart(cartItems);
+        
+        observer.next({
+          message: 'Item added to cart successfully (local)',
+          data: newItem
+        });
+      }
+      
+      observer.complete();
     });
+  }
+
+  removeFromCart(id: number): Observable<{message: string}> {
+    const headers = this.getHeaders();
+    if (!headers) {
+      // Use local cart if not logged in
+      return this.removeFromLocalCart(id);
+    }
     
-    // Try backend first
+    // User is logged in, try backend
     return new Observable<{message: string}>(observer => {
       this.http.delete<{message: string}>(`${this.apiUrl}/${id}`, { headers }).subscribe({
         next: (response) => {
@@ -164,28 +196,35 @@ export class CartService {
         },
         error: (error) => {
           console.error('Failed to remove from cart via API, using local cart:', error);
-          
-          // Use local cart
-          const cartItems = this.cartItemsSubject.value.filter(item => item.id !== id);
-          this.saveLocalCart(cartItems);
-          
-          observer.next({
-            message: 'Item removed from cart successfully (local)'
+          this.removeFromLocalCart(id).subscribe(response => {
+            observer.next(response);
+            observer.complete();
           });
-          observer.complete();
         }
       });
     });
   }
 
-  updateQuantity(id: number, quantity: number): Observable<{message: string, data: CartItem}> {
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${this.authService.getToken()}`
+  private removeFromLocalCart(id: number): Observable<{message: string}> {
+    return new Observable<{message: string}>(observer => {
+      const cartItems = this.cartItemsSubject.value.filter(item => item.id !== id);
+      this.saveLocalCart(cartItems);
+      
+      observer.next({
+        message: 'Item removed from cart successfully (local)'
+      });
+      observer.complete();
     });
+  }
+
+  updateQuantity(id: number, quantity: number): Observable<{message: string, data: CartItem}> {
+    const headers = this.getHeaders();
+    if (!headers) {
+      // Use local cart if not logged in
+      return this.updateLocalQuantity(id, quantity);
+    }
     
-    // Try backend first
+    // User is logged in, try backend
     return new Observable<{message: string, data: CartItem}>(observer => {
       this.http.put<{message: string, data: CartItem}>(`${this.apiUrl}/${id}`, {
         quantity
@@ -197,26 +236,33 @@ export class CartService {
         },
         error: (error) => {
           console.error('Failed to update cart via API, using local cart:', error);
-          
-          // Use local cart
-          const cartItems = [...this.cartItemsSubject.value];
-          const itemIndex = cartItems.findIndex(item => item.id === id);
-          
-          if (itemIndex < 0) {
-            observer.error({ error: { message: 'Cart item not found' } });
-            return;
-          }
-          
-          cartItems[itemIndex].quantity = quantity;
-          this.saveLocalCart(cartItems);
-          
-          observer.next({
-            message: 'Cart item updated successfully (local)',
-            data: cartItems[itemIndex]
+          this.updateLocalQuantity(id, quantity).subscribe(response => {
+            observer.next(response);
+            observer.complete();
           });
-          observer.complete();
         }
       });
+    });
+  }
+
+  private updateLocalQuantity(id: number, quantity: number): Observable<{message: string, data: CartItem}> {
+    return new Observable<{message: string, data: CartItem}>(observer => {
+      const cartItems = [...this.cartItemsSubject.value];
+      const itemIndex = cartItems.findIndex(item => item.id === id);
+      
+      if (itemIndex < 0) {
+        observer.error({ error: { message: 'Cart item not found' } });
+        return;
+      }
+      
+      cartItems[itemIndex].quantity = quantity;
+      this.saveLocalCart(cartItems);
+      
+      observer.next({
+        message: 'Cart item updated successfully (local)',
+        data: cartItems[itemIndex]
+      });
+      observer.complete();
     });
   }
 } 
