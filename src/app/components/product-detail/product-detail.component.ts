@@ -49,17 +49,10 @@ export class ProductDetailComponent implements OnInit {
         
         // Construct full image URLs from API response
         if (this.product) {
-          if (this.product.image_path && this.product.image_filename) {
-            // Construct the full image URL using the API base URL
-            const apiBaseUrl = environment.apiUrl.replace('/api', '');
-            this.product.full_image_url = `${apiBaseUrl}/${this.product.image_path}/${this.product.image_filename}`;
-            
-            // Also construct thumbnail URL if available
-            if (this.product.image_thumbnail) {
-              this.product.thumbnail_url = `${apiBaseUrl}/${this.product.image_path}/${this.product.image_thumbnail}`;
-            } else {
-              this.product.thumbnail_url = this.product.full_image_url;
-            }
+          // Use product ID to generate API image URLs
+          if (this.product.id) {
+            this.product.full_image_url = `${environment.apiUrl}/products/${this.product.id}/image`;
+            this.product.thumbnail_url = `${environment.apiUrl}/products/${this.product.id}/thumbnail`;
           } else if (!this.product.image_url || this.product.image_url.trim() === '') {
             // If no image data at all, use Unsplash for better product-specific images
             this.product.full_image_url = `https://source.unsplash.com/600x400/?product,${encodeURIComponent(this.product.name || 'product')}`;

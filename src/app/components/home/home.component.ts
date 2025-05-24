@@ -29,18 +29,11 @@ export class HomeComponent implements OnInit {
         if (response.products && response.products.length > 0) {
           // First, enhance products with full image URLs
           const enhancedProducts = response.products.map((product, index) => {
-            // Check if we have image path and filename data
-            if (product.image_path && product.image_filename) {
-              // Construct the full image URL using the API base URL
-              const apiBaseUrl = environment.apiUrl.replace('/api', '');
-              product.full_image_url = `${apiBaseUrl}/${product.image_path}/${product.image_filename}`;
-              
-              // Also construct thumbnail URL if available
-              if (product.image_thumbnail) {
-                product.thumbnail_url = `${apiBaseUrl}/${product.image_path}/${product.image_thumbnail}`;
-              } else {
-                product.thumbnail_url = product.full_image_url;
-              }
+            // Use database image names with product-specific image APIs
+            const apiBaseUrl = environment.apiUrl.replace('/api', '');
+            if (product.id) {
+              product.full_image_url = `${environment.apiUrl}/products/${product.id}/image`;
+              product.thumbnail_url = `${environment.apiUrl}/products/${product.id}/thumbnail`;
               return product;
             } else if (!product.image_url || product.image_url.trim() === '') {
               // If no image data at all, use Unsplash for better product-specific images
