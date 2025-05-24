@@ -5,6 +5,7 @@ import { ProductService } from '../../services/product.service';
 import { CartService } from '../../services/cart.service';
 import { Product } from '../../models/product.model';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-products',
@@ -33,12 +34,24 @@ export class ProductsComponent implements OnInit {
         if (response.products && response.products.length > 0) {
           this.products = response.products;
           
-          // Enhance products with better image URLs if they don't have one
+          // Construct full image URLs from API response
           this.products.forEach((product, index) => {
-            if (!product.image_url || product.image_url.trim() === '') {
-              // Use placehold.co with product name as text and random background color
-              const colorIndex = index % this.placeholderColors.length;
-              product.image_url = `https://placehold.co/300x200/${this.placeholderColors[colorIndex]}/000000?text=${encodeURIComponent(product.name || 'Product')}`;
+            // Check if we have image path and filename data
+            if (product.image_path && product.image_filename) {
+              // Construct the full image URL using the API base URL
+              const apiBaseUrl = environment.apiUrl.replace('/api', '');
+              product.full_image_url = `${apiBaseUrl}/${product.image_path}/${product.image_filename}`;
+              
+              // Also construct thumbnail URL if available
+              if (product.image_thumbnail) {
+                product.thumbnail_url = `${apiBaseUrl}/${product.image_path}/${product.image_thumbnail}`;
+              } else {
+                product.thumbnail_url = product.full_image_url;
+              }
+            } else if (!product.image_url || product.image_url.trim() === '') {
+              // If no image data at all, use Unsplash for better product-specific images
+              product.full_image_url = `https://source.unsplash.com/300x200/?product,${encodeURIComponent(product.name || 'product')}`;
+              product.thumbnail_url = `https://source.unsplash.com/150x100/?product,${encodeURIComponent(product.name || 'product')}`;
             }
           });
           

@@ -5,6 +5,7 @@ import { ProductService } from '../../services/product.service';
 import { CartService } from '../../services/cart.service';
 import { Product } from '../../models/product.model';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-product-detail',
@@ -46,11 +47,24 @@ export class ProductDetailComponent implements OnInit {
       next: (response) => {
         this.product = response.product;
         
-        // Add placeholder image if missing
-        if (this.product && (!this.product.image_url || this.product.image_url.trim() === '')) {
-          // Select a random color from the placeholder colors
-          const randomColor = this.placeholderColors[Math.floor(Math.random() * this.placeholderColors.length)];
-          this.product.image_url = `https://placehold.co/600x400/${randomColor}/000000?text=${encodeURIComponent(this.product.name || 'Product')}`;
+        // Construct full image URLs from API response
+        if (this.product) {
+          if (this.product.image_path && this.product.image_filename) {
+            // Construct the full image URL using the API base URL
+            const apiBaseUrl = environment.apiUrl.replace('/api', '');
+            this.product.full_image_url = `${apiBaseUrl}/${this.product.image_path}/${this.product.image_filename}`;
+            
+            // Also construct thumbnail URL if available
+            if (this.product.image_thumbnail) {
+              this.product.thumbnail_url = `${apiBaseUrl}/${this.product.image_path}/${this.product.image_thumbnail}`;
+            } else {
+              this.product.thumbnail_url = this.product.full_image_url;
+            }
+          } else if (!this.product.image_url || this.product.image_url.trim() === '') {
+            // If no image data at all, use Unsplash for better product-specific images
+            this.product.full_image_url = `https://source.unsplash.com/600x400/?product,${encodeURIComponent(this.product.name || 'product')}`;
+            this.product.thumbnail_url = `https://source.unsplash.com/300x200/?product,${encodeURIComponent(this.product.name || 'product')}`;
+          }
         }
         
         this.loading = false;
